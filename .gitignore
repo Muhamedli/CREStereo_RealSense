@@ -152,5 +152,11 @@ cython_debug/
 #.idea/
 
 vis_results/
-models/*
 test_data/*
+
+# except files
+*
+
+!models/README.md
+
+!*/
