@@ -154,9 +154,7 @@ cython_debug/
 vis_results/
 test_data/*
 
-# except files
-*
-
-!models/README.md
-
-!*/
+# model weights
+models/crestereo_without_flow.onnx
+models/crestereo.onnx
+models/crestereo_eth3d.pth
