@@ -93,7 +93,7 @@ while True:
     imgR = np.stack((imgR_raw,)*3, axis=-1)
 
     # Получение облака точек
-    pred = inference(imgL, imgR, model, n_iter=20)
+    pred = inference(imgL, imgR, model, n_iter=4)
     # point_cloud = disparity_to_pointcloud(pred, Q)
 
     depth_view = pred
