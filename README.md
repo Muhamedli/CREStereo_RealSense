@@ -28,7 +28,7 @@
 
 # Pretrained model
 Download models from [here](https://drive.google.com/drive/folders/1KFznC-eKIy7lbL2rH1jrTNdySauGP8KQ?usp=sharing) and save it into the `models` folder.
-- `crestereo_eth3d.pth` for `PyTorch` inference.
+- `crestereo_eth3d.pth` for PyTorch inference.
 - `crestereo.onnx` and `crestereo_without_flow.onnx` for ONNX inference.
 
 
