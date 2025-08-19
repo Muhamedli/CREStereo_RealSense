@@ -5,11 +5,11 @@ import torch
 import torch.nn.functional as F
 from nets import Model
 
-# интринсики для d405
-fx = 640.873108  # Фокусное расстояние по x
-fy = 640.873108  # Фокусное расстояние по y
-cx = 641.508728  # Оптический центр x
-cy = 356.237122  # Оптический центр y
+# intrinsics for d405
+fx = 640.873108
+fy = 640.873108
+cx = 641.508728
+cy = 356.237122
 baseline = 0.018
 
 Q = np.float32(
@@ -26,15 +26,15 @@ model.load_state_dict(torch.load(model_path), strict=True)
 model.to(device)
 model.eval()
 
-# Инициализация пайплайна RealSense
+# Initializing the RealSense pipeline
 pipeline = rs.pipeline()
 config = rs.config()
 
-# Получение IR изображений (левого и правого)
+# Receiving IR images (left and right)
 config.enable_stream(rs.stream.infrared, 1, 1280, 720, rs.format.y8, 30)
 config.enable_stream(rs.stream.infrared, 2, 1280, 720, rs.format.y8, 30)
 
-# Запуск пайплайна
+# Start pipeline
 pipeline.start(config)
 
 
@@ -72,27 +72,27 @@ def inference(left, right, model, n_iter=20):
 def disparity_to_pointcloud(disparity, Q):
     disparity = np.float32(disparity)
 
-    # Преобразование в 3D точки
+    # convert disparity to 3D point cloud
     points_3d = cv2.reprojectImageTo3D(disparity, Q)
 
     return points_3d
 
 
 while True:
-    # Ожидание одного кадра
+    # Waiting for one frame
     frames = pipeline.wait_for_frames()
 
-    # Получение IR кадров
+    # Receiving IR frames
     left_infrared = frames.get_infrared_frame(1)
     right_infrared = frames.get_infrared_frame(2)
 
-    # Преобразование кадров в массивы NumPy
+    # Converting frames to NumPy arrays
     imgL_raw = np.asanyarray(left_infrared.get_data())
     imgR_raw = np.asanyarray(right_infrared.get_data())
     imgL = np.stack((imgL_raw,)*3, axis=-1)
     imgR = np.stack((imgR_raw,)*3, axis=-1)
 
-    # Получение облака точек
+    # Getting a point cloud
     pred = inference(imgL, imgR, model, n_iter=4)
     # point_cloud = disparity_to_pointcloud(pred, Q)
 
@@ -103,5 +103,5 @@ while True:
     if cv2.waitKey(1) == ord('q'):
         break
 
-# Остановка пайплайна
+# Stop pipeline
 pipeline.stop()

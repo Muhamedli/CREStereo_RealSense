@@ -3,11 +3,11 @@ import cv2
 import onnxruntime
 import pyrealsense2 as rs
 
-# интринсики для d405
-fx = 640.873108  # Фокусное расстояние по x
-fy = 640.873108  # Фокусное расстояние по y
-cx = 641.508728  # Оптический центр x
-cy = 356.237122  # Оптический центр y
+# intrinsics for d405
+fx = 640.873108
+fy = 640.873108
+cx = 641.508728
+cy = 356.237122
 baseline = 0.018
 
 Q = np.float32(
@@ -17,15 +17,15 @@ Q = np.float32(
      [0, 0, 1 / baseline, 0]]
 )
 
-# Инициализация пайплайна RealSense
+# Initializing the RealSense pipeline
 pipeline = rs.pipeline()
 config = rs.config()
 
-# Получение IR изображений (левого и правого)
+# Receiving IR images (left and right)
 config.enable_stream(rs.stream.infrared, 1, 1280, 720, rs.format.y8, 30)
 config.enable_stream(rs.stream.infrared, 2, 1280, 720, rs.format.y8, 30)
 
-# Запуск пайплайна
+# Start pipeline
 pipeline.start(config)
 
 
@@ -67,14 +67,14 @@ def inference(left, right, model, no_flow_model):
 
 
 while True:
-    # Ожидание одного кадра
+    # Waiting for one frame
     frames = pipeline.wait_for_frames()
 
-    # Получение IR кадров
+    # Receiving IR frames
     left_infrared = frames.get_infrared_frame(1)
     right_infrared = frames.get_infrared_frame(2)
 
-    # Преобразование кадров в массивы NumPy
+    # Converting frames to NumPy arrays
     imgL_raw = np.asanyarray(left_infrared.get_data())
     imgR_raw = np.asanyarray(right_infrared.get_data())
     imgL = np.stack((imgL_raw,)*3, axis=-1)
@@ -95,5 +95,5 @@ while True:
     if cv2.waitKey(1) == ord('q'):
         break
 
-# Остановка пайплайна
+# Stop pipeline
 pipeline.stop()

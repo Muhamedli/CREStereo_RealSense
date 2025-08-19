@@ -5,11 +5,11 @@ import cv2
 import open3d as o3d
 from nets import Model
 
-# интринсики для d405
-fx = 640.873108  # Фокусное расстояние по x
-fy = 640.873108  # Фокусное расстояние по y
-cx = 641.508728  # Оптический центр x
-cy = 356.237122  # Оптический центр y
+# intrinsics for d405
+fx = 640.873108
+fy = 640.873108
+cx = 641.508728
+cy = 356.237122
 baseline = 0.018
 
 Q = np.float32(
@@ -63,13 +63,11 @@ def disparity_to_pointcloud(disparity, Q):
 
     disparity = np.float32(disparity)
 
-    # Преобразование в 3D точки
+    # convert disparity to 3D point cloud
     points_3d = cv2.reprojectImageTo3D(disparity, Q)
 
-    # Маска для валидных точек (исключаем точки с бесконечной/некорректной глубиной)
+    # Mask for valid points (excluding points with infinite or incorrect depth)
     mask = (disparity > disparity.min()) & (disparity != 0)
-
-    # Фильтрация точек
     points_3d = points_3d[mask]
 
     return points_3d
@@ -77,23 +75,23 @@ def disparity_to_pointcloud(disparity, Q):
 
 def create_grid(plane, size, step, color):
     lines = []
-    # Генерация линий XY
+    # Generating XY lines
     if plane == "xy":
         for i in np.arange(-size, size + step, step):
-            lines.append([[i, -size, 0], [i, size, 0]])  # Линии параллельные Y
-            lines.append([[-size, i, 0], [size, i, 0]])  # Линии параллельные X
-    # Генерация линий YZ
+            lines.append([[i, -size, 0], [i, size, 0]])
+            lines.append([[-size, i, 0], [size, i, 0]])
+    # Generating YZ lines
     elif plane == "yz":
         for i in np.arange(-size, size + step, step):
-            lines.append([[0, i, -size], [0, i, size]])  # Линии параллельные Z
-            lines.append([[0, -size, i], [0, size, i]])  # Линии параллельные Y
-    # Генерация линий XZ
+            lines.append([[0, i, -size], [0, i, size]])
+            lines.append([[0, -size, i], [0, size, i]])
+    # Generation of XZ lines
     elif plane == "xz":
         for i in np.arange(-size, size + step, step):
-            lines.append([[i, 0, -size], [i, 0, size]])  # Линии параллельные Z
-            lines.append([[-size, 0, i], [size, 0, i]])  # Линии параллельные X
+            lines.append([[i, 0, -size], [i, 0, size]])
+            lines.append([[-size, 0, i], [size, 0, i]])
 
-    # Создаем LineSet
+    # Creating a LineSet
     grid = o3d.geometry.LineSet()
     grid.points = o3d.utility.Vector3dVector(np.array(lines).reshape(-1, 3))
     grid.lines = o3d.utility.Vector2iVector(
@@ -130,25 +128,27 @@ if __name__ == "__main__":
 
     point_cloud = disparity_to_pointcloud(pred, Q)
 
-    # Добавляем оси
+    # Adding axes
     coord_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(
         size=0.1, origin=[0, 0, 0]
     )
 
-    # Создаем сетку
+    # Creating a grid
     grid_xy = create_grid(plane="xy", size=0.5, step=0.05, color=[0, 0, 0])
     grid_yz = create_grid(plane="yz", size=0.5, step=0.05, color=[0, 0, 0])
     grid_xz = create_grid(plane="xz", size=0.5, step=0.05, color=[0, 0, 0])
 
-    # Создаем объект PointCloud из Open3D
+    # Creating a PointCloud object from Open3D
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(point_cloud)
-    # Разрежение облака точек
+
+    # Dilution of the point cloud
     pcd = pcd.voxel_down_sample(voxel_size=0.002)
 
-    # Визуализация облака точек
+    # Visualization of a point cloud
     o3d.visualization.draw_geometries(
         [pcd, coord_frame, grid_xy, grid_yz, grid_xz],
         window_name="point cloud",
         width=1280,
         height=720)
+    
